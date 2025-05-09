@@ -1,24 +1,17 @@
 #include "gdt.h"
 
-struct gdt_entry {
-    uint16_t limit_low;
-    uint16_t base_low;
-    uint8_t  base_middle;
-    uint8_t  access;
-    uint8_t  granularity;
-    uint8_t  base_high;
-} __attribute__((packed));
+// Global Descriptor Table (GDT) structure
 
-struct gdt_ptr {
-    uint16_t limit;
-    uint32_t base;
-} __attribute__((packed));
-
+// Define the number of GDT entries
 struct gdt_entry gdt[3];
+
+// Define the GDT pointer structure
+// This structure is used to load the GDT with the lgdt instruction
 struct gdt_ptr gp;
 
 extern void gdt_flush(uint32_t);
 
+// Initialize a GDT entry
 void gdt_set_gate(int num, uint32_t base, uint32_t limit, uint8_t access, uint8_t gran) {
     gdt[num].base_low    = base & 0xFFFF;
     gdt[num].base_middle = (base >> 16) & 0xFF;
@@ -29,6 +22,7 @@ void gdt_set_gate(int num, uint32_t base, uint32_t limit, uint8_t access, uint8_
     gdt[num].access      = access;
 }
 
+// Sets up the GDT with three entries: Null segment, code segment, and data segment.
 void gdt_install(void) {
     gp.limit = (sizeof(struct gdt_entry) * 3) - 1;
     gp.base  = (uint32_t)&gdt;
